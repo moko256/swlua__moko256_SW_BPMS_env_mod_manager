@@ -31,55 +31,55 @@ g_savedata = {
 created = false
 fields = {} -- List<field_ctrl_id, Field>
 
-local zero_matrix = matrix.translation(0, 0, 0)
+zero_matrix = nil -- matrix
 
 function Field(addon_index, location_indexes, labels, name)
 	return {
-		addon_index: addon_index,
-		location_indexes: location_indexes, -- List<location_index>
-		labels: labels, -- List<Label>
-		name: name,
+		addon_index = addon_index,
+		location_indexes = location_indexes, -- List<location_index>
+		labels = labels, -- List<Label>
+		name = name,
 	}
 end
 
 function LocalField(addon_index, location_indexes, labels, name)
 	return {
-		addon_index: addon_index,
-		location_indexes: location_indexes, -- List<location_index>
-		labels: labels, -- List<LocalLabel> ***differ from non-local
-		name: name,
+		addon_index = addon_index,
+		location_indexes = location_indexes, -- List<location_index>
+		labels = labels, -- List<LocalLabel> ***differ from non-local
+		name = name,
 	}
 end
 
 function Building(building_id, building_type, addon_index)
 	return {
-		id: building_id,
-		type: building_type,
-		addon_index: addon_index,
+		id = building_id,
+		type = building_type,
+		addon_index = addon_index,
 	}
 end
 
 function Label(ui_id, icon, text, position)
 	return {
-		ui_id: ui_id,
-		icon: icon,
-		text: text,
-		position: position, -- MapPosition
+		ui_id = ui_id,
+		icon = icon,
+		text = text,
+		position = position, -- MapPosition
 	}
 end
 
 function LocalLabel(ui_id, icon, text, position, tile_filename)
 	return {
-		ui_id: ui_id,
-		icon: icon,
-		text: text,
-		position: position, -- MapPosition
-		tile_filename: tile_filename, -- ***differ from non-local
+		ui_id = ui_id,
+		icon = icon,
+		text = text,
+		position = position, -- MapPosition
+		tile_filename = tile_filename, -- ***differ from non-local
 	}
 end
 
 function MapPosition(x, z)
-	return { x: x, z: z }
+	return { x = x, z = z }
 end
 
 
@@ -93,6 +93,7 @@ end
 
 
 function onCreate(is_world_create)
+	zero_matrix = matrix.translation(0, 0, 0)
 	local this_addon_index = server.getAddonIndex()
 	
 	local patter_sw_bpms = string.regexp("SW_BPMS_", "i")
