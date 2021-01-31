@@ -170,7 +170,9 @@ function onCreate(is_world_create)
 
 		if #local_locations ~= 0 then
 			table.insert(local_fields, LocalField(addon_index, local_locations, local_labels, addon_data.name))
-			g_savedata.fields_spawning[addon_index] = not is_sw_bpms
+			if is_world_create then
+				g_savedata.fields_spawning[addon_index] = not is_sw_bpms
+			end
 		end
 	end
 
