@@ -264,6 +264,15 @@ end
 
 
 -- Commands
+function printToChat(peer_id, msg)
+	server.announce("[?bm]", msg, peer_id)
+end
+
+function printToNotify(title, msg, type)
+	server.notify(-1, title, msg, type)
+end
+
+
 function showField(field)
 	if not g_savedata.fields_spawning[field.addon_index] then
 		g_savedata.fields_spawning[field.addon_index] = true
@@ -271,13 +280,34 @@ function showField(field)
 	end
 end
 
-function cmd_h()
+function cmd_h(peer_id)
+	printToChat(
+		peer_id,
+		"--- SW-BMPS Building Manager ---\n"
+		.."?bm l              : display all buildings\n"
+		.."?bm s a          : spawn all\n"
+		.."?bm s [num] : spawn at num\n"
+		.."?bm d a         : despawn all\n"
+		.."?bm d [num]: despawn at num\n"
+		.."?bm h            : display this help and exit"
+	)
 end
 
-function cmd_l()
+function cmd_l(peer_id)
+	local msg = "List of managing:\n[num] O==spawned 'name'"
+	for field_ctrl_id, field in ipairs(fields) do
+		local status = nil
+		if g_savedata.fields_spawning[field.addon_index] then
+			status = "O"
+		else
+			status = "X"
+		end
+		msg = msg..string.format("\n[%d] %s '%s'", field_ctrl_id, status, field.name)
+	end
+	printToChat(peer_id, msg.."\nend")
 end
 
-function cmd_s_a()
+function cmd_s_a(peer_id)
 	printf("a")
 	for _k, field in pairs(fields) do
 		showField(field)
@@ -285,7 +315,7 @@ function cmd_s_a()
 	-- notify
 end
 
-function cmd_d_a()
+function cmd_d_a(peer_id)
 	printf("b")
 	for _k, building in pairs(g_savedata.spawned_buildings) do
 		despawnBuilding(building)
@@ -296,7 +326,7 @@ function cmd_d_a()
 	-- notify
 end
 
-function cmd_s_n(args)
+function cmd_s_n(peer_id, args)
 	printf("c")
 	local field_ctrl_id = tonumber(args)
 	if 1 <= field_ctrl_id and field_ctrl_id <= #fields then
@@ -305,7 +335,7 @@ function cmd_s_n(args)
 	end
 end
 
-function cmd_d_n(args)
+function cmd_d_n(peer_id, args)
 	printf("d")
 	local field_ctrl_id = tonumber(args)
 	if 1 <= field_ctrl_id and field_ctrl_id <= #fields then
@@ -319,11 +349,18 @@ function cmd_d_n(args)
 	end
 end
 
+function cmd_x()
+	--for debug
+end
+
 cmds = {
+	{"l", cmd_l},
 	{"s a", cmd_s_a},
 	{"s ([0-9]+)", cmd_s_n},
 	{"d a", cmd_d_a},
 	{"d ([0-9]+)", cmd_d_n},
+	{"h", cmd_h},
+	{"x", cmd_x},
 }
 
 function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, command, one, two, three, four, five)
@@ -347,7 +384,7 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, command,
 		for _k, cmd in pairs(cmds) do
 			local matches = string.match(args, "^%s-"..string.gsub(cmd[1], " ", "%%s-").."%s-$")
 			if matches ~= nil then
-				cmd[2](matches)
+				cmd[2](user_peer_id, matches)
 				break
 			end
 		end
