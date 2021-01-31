@@ -193,10 +193,12 @@ function onCreate(is_world_create)
 		for config_hide_index, hide_addon_name in pairs(config_hide) do
 			local hide_addon_index, found = server.getAddonIndex(hide_addon_name)
 			if found then
-				for spawned_buildings_index, spawned_building in pairs(g_savedata.spawned_buildings) do
+				for spawned_buildings_index = #g_savedata.spawned_buildings, 1, -1 do
+					local spawned_building = g_savedata.spawned_buildings[spawned_buildings_index]
 					if hide_addon_index == spawned_building.addon_index then
 						despawnBuilding(spawned_building)
 						table.remove(g_savedata.spawned_buildings, spawned_buildings_index)
+						g_savedata.fields_spawning[field.addon_index] = false
 					end
 				end
 			end
