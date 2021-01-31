@@ -345,7 +345,7 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, command,
 		local args = string.sub(full_message, 5, -1)
 		printf(args)
 		for _k, cmd in pairs(cmds) do
-			local matches = string.match(args, "^"..cmd[1].."$")
+			local matches = string.match(args, "^%s-"..string.gsub(cmd[1], " ", "%%s-").."%s-$")
 			if matches ~= nil then
 				cmd[2](matches)
 				break
