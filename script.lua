@@ -235,9 +235,24 @@ end
 
 
 function onPlayerJoin(steam_id, name, peer_id, admin, auth)
+	for fields_index, field in pairs(fields) do
+		if g_savedata.fields_spawning[field.addon_index] then
+			showLabels(field.labels)
+		end
+	end
 end
 
 function onSpawnAddonComponent(building_id, component_name, building_type, addon_index)
+	local addon_contains = false
+	for field_ctrl_id, field in pairs(fields) do
+		if field.addon_index == addon_index then
+			addon_contains = true
+			break
+		end
+	end
+	if (created and addon_contains) or (not created) then
+		table.insert(g_savedata.spawned_buildings, Building(building_id, building_type, addon_index))
+	end
 end
 
 function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, command, one, two, three, four, five)
