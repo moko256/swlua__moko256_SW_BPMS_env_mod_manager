@@ -103,9 +103,9 @@ end
 
 function despawnBuilding(building) -- Building
 	if building.type == "vehicle" then
-		server.despawnVehicle(building.building_id, true)
+		server.despawnVehicle(building.id, true)
 	else
-		server.despawnObject(building.building_id, true)
+		server.despawnObject(building.id, true)
 	end
 end
 
