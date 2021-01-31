@@ -180,9 +180,12 @@ function onCreate(is_world_create)
 			local tile_filename = local_label.tile_filename
 			local map_position = g_savedata.tile_zero_point[tile_filename]
 			if map_position == nil then
-				local map_position_matrix = server.spawnAddonLocation(zero_matrix, this_addon_index, tile_data[tile_filename])
-				local gx, gy, gz = matrix.position(map_position_matrix)
-				g_savedata.tile_zero_point[tile_filename] = MapPosition(gx, gz)
+				local tile_location = tile_data[tile_filename]
+				if tile_location ~= nil then
+					local map_position_matrix = server.spawnAddonLocation(zero_matrix, this_addon_index, tile_location)
+					local gx, gy, gz = matrix.position(map_position_matrix)
+					g_savedata.tile_zero_point[tile_filename] = MapPosition(gx, gz)
+				end
 			end
 			if map_position ~= nil then
 				local mx, mz = local_label.position
@@ -192,7 +195,7 @@ function onCreate(is_world_create)
 				server.removeMapID(-1, local_label.ui_id)
 			end
 		end
-		table.insert(fields, Field(local_field.addon_index, local_field.location_indexes, local_field.labels, local_field.name))
+		table.insert(fields, Field(local_field.addon_index, local_field.location_indexes, labels, local_field.name))
 	end
 
 	if is_world_create then
