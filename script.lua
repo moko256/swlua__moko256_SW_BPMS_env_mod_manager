@@ -257,7 +257,99 @@ function onSpawnAddonComponent(building_id, component_name, building_type, addon
 	end
 end
 
+
+function printf(fmt, ...)
+	server.announce("printf", string.format(fmt, ...), -1)
+end
+
+
+-- Commands
+function showField(field)
+	if not g_savedata.fields_spawning[field.addon_index] then
+		g_savedata.fields_spawning[field.addon_index] = true
+		spawnField(field)
+	end
+end
+
+function cmd_h()
+end
+
+function cmd_l()
+end
+
+function cmd_s_a()
+	printf("a")
+	for _k, field in pairs(fields) do
+		showField(field)
+	end
+	-- notify
+end
+
+function cmd_d_a()
+	printf("b")
+	for _k, building in pairs(g_savedata.spawned_buildings) do
+		despawnBuilding(building)
+	end
+	for _k, field in pairs(fields) do
+		g_savedata.fields_spawning[field.addon_index] = false
+	end
+	-- notify
+end
+
+function cmd_s_n(args)
+	printf("c")
+	local field_ctrl_id = tonumber(args)
+	if 1 <= field_ctrl_id and field_ctrl_id <= #fields then
+		showField(fields[field_ctrl_id])
+		-- notify
+	end
+end
+
+function cmd_d_n(args)
+	printf("d")
+	local field_ctrl_id = tonumber(args)
+	if 1 <= field_ctrl_id and field_ctrl_id <= #fields then
+		local addon_index = fields[field_ctrl_id].addon_index
+		for _k, building in pairs(g_savedata.spawned_buildings) do
+			if building.addon_index == addon_index then
+				despawnBuilding(building)
+			end
+		end
+		g_savedata.fields_spawning[addon_index] = false
+	end
+end
+
+cmds = {
+	{"s a", cmd_s_a},
+	{"s ([0-9]+)", cmd_s_n},
+	{"d a", cmd_d_a},
+	{"d ([0-9]+)", cmd_d_n},
+}
+
 function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, command, one, two, three, four, five)
-	if command == "?bm" then
+	if command == "?d" then
+		printf("~~")
+		for k,v in pairs(fields) do
+			printf("a %d %d %s", k, v.addon_index, v.name)
+			for k,v in pairs(v.location_indexes) do
+				printf("	l %d %d", k, v)
+			end
+			for k,v in pairs(v.labels) do
+				printf("	m %d %d %s %d %d", v.ui_id, v.icon, v.text, v.position.x, v.position.y)
+			end
+		end
+		for k,v in pairs(g_savedata.spawned_buildings) do
+			printf("s %d %s %d", v.id, v.type, v.addon_index)
+		end
+	elseif command == "?bm" then
+		local args = string.sub(full_message, 5, -1)
+		printf(args)
+		for _k, cmd in pairs(cmds) do
+			local matches = string.match(args, "^"..cmd[1].."$")
+			if matches ~= nil then
+				cmd[2](matches)
+				break
+			end
+		end
 	end
 end
