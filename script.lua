@@ -82,6 +82,24 @@ function MapPosition(x, z)
 	return { x = x, z = z }
 end
 
+function showLabels(labels) -- List<Label>
+	for labels_index, label in pairs(labels) do
+		server.addMapLabel(-1, label.ui_id, label.type, label.text, label.position.x, label.position.z)
+	end
+end
+
+function hideLabels(labels)
+	for labels_index, label in pairs(labels) do
+		server.removeMapObject(-1, label.ui_id)
+	end
+end
+
+function spawnField(field) -- Field
+	for locations_loop_i, location_index in pairs(field.location_indexes) do
+		server.spawnAddonLocation(zero_matrix, field.addon_index, location_index)
+	end
+	showLabels(field.labels)
+end
 
 function despawnBuilding(building) -- Building
 	if building.type == "vehicle" then
