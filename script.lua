@@ -214,6 +214,11 @@ function onCreate(is_world_create)
 				table.remove(g_savedata.spawned_buildings, spawned_buildings_index)
 			end
 		end
+
+		for field_ctrl_id, field in pairs(fields) do
+			if config_hide[field.addon_index] == nil and g_savedata.fields_spawning[field.addon_index] == false then
+				spawnField(field)
+				g_savedata.fields_spawning[field.addon_index] = true
 			end
 		end
 	end
