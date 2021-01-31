@@ -175,6 +175,21 @@ function onCreate(is_world_create)
 	end
 
 	if is_world_create then
+		local is_spawned_addons = {} -- Map<addon_index, true>
+		for spawned_buildings_index, spawned_building in pairs(g_savedata.spawned_buildings) do
+			spawned_addon_locations[spawned_building.addon_index] = true
+		end
+		for fields_index, field in pairs(fields) do
+			is_spawned_addons[field.addon_index] = nil
+		end
+		for spawned_addons_index, is_spawned_addon in pairs(is_spawned_addons) do
+			for spawned_buildings_index = #g_savedata.spawned_buildings, 1, -1 do
+				if g_savedata.spawned_buildings[spawned_buildings_index].addon_index == spawned_addons_index then
+					table.remove(g_savedata.spawned_buildings, spawned_buildings_index)
+				end
+			end
+		end
+
 		for config_hide_index, hide_addon_name in pairs(config_hide) do
 			local hide_addon_index, found = server.getAddonIndex(hide_addon_name)
 			if found then
