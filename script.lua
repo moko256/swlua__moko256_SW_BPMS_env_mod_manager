@@ -140,11 +140,12 @@ function onCreate(is_world_create)
 				for component_index = 0, location_data.component_count - 1 do
 					local component_data = server.getLocationComponentData(addon_index, location_index, component_index)
 					local label_icon = 1 -- cross
+					local cx, cy, cz = matrix.position(component_data.transform)
+					local label_position = MapPosition(cx, cz)
 
 					for tag_index, tag in pairs(component_data.tags) do
-						local tag_matches = string.match(tag, pattern_sw_bpms_tag)
-						if tag_matches ~= nil then
-							local tag_operator, tag_value = tag_matches
+						local _, _, tag_operator, tag_value = string.find(tag, pattern_sw_bpms_tag)
+						if tag_operator ~= nil and tag_value ~= nil then
 							if tag_operator == "config_hide" then
 								for tag_config_index, tag_config in pairs(string.split(tag_value, "|")) do
 									local hide_addon_index, found = server.getAddonIndex(tag_config)
@@ -190,8 +191,8 @@ function onCreate(is_world_create)
 				end
 			end
 			if map_position ~= nil then
-				local mx, mz = local_label.position
-				local gx, gz = map_position
+				local mx, mz = local_label.position.x, local_label.position.z
+				local gx, gz = map_position.x, map_position.z
 				table.insert(labels, Label(local_label.ui_id, local_label.icon, local_label.text, MapPosition(mx+gx, mz+gz)))
 			else
 				server.removeMapID(-1, local_label.ui_id)
