@@ -114,8 +114,8 @@ function onCreate(is_world_create)
 	zero_matrix = matrix.translation(0, 0, 0)
 	local this_addon_index = server.getAddonIndex()
 	
-	local patter_sw_bpms = "SW_BPMS_|sw_bpms_"
-	local pattern_sw_bpms_tag = "^SW_BPMS_(.+?)=(.*)$", "i"
+	local pattern_sw_bpms = "^[Ss][Ww]_[Bb][Pp][Mm][Ss]_"
+	local pattern_sw_bpms_tag = "^SW_BPMS_([^=].+)=(.+)$", "i"
 	local pattern_int = "^[0-9].+$"
 	
 	local local_fields = {} -- List<Field>
@@ -124,7 +124,7 @@ function onCreate(is_world_create)
 	
 	for addon_index = 0, server.getAddonCount() - 1 do
 		local addon_data = server.getAddonData(addon_index)
-		local is_sw_bpms = string.match(addon_data.name, patter_sw_bpms) ~= nil
+		local is_sw_bpms = string.match(addon_data.name, pattern_sw_bpms) ~= nil
 		local local_locations = {} -- List<location_index>
 		local local_labels = {} -- List<LocalLabel>
 
@@ -134,7 +134,7 @@ function onCreate(is_world_create)
 			
 			if addon_index == this_addon_index then
 				tile_data[location_data.tile] = location_index
-			elseif is_sw_bpms ~= not is_env then -- xor
+			elseif is_sw_bpms ~= is_env then -- xor
 				table.insert(local_locations, location_index)
 
 				for component_index = 0, location_data.component_count - 1 do
