@@ -119,14 +119,14 @@ function onCreate(is_world_create)
 	local pattern_int = "^[0-9].+$"
 	
 	local local_fields = {} -- List<Field>
-	local config_hide = {} -- List<addon_name>
+	local config_hide = {} -- Map<addon_name, true>
 	local tile_data = {} -- Map<tile_filename, location_index>
 	
 	for addon_index = 0, server.getAddonCount() - 1 do
 		local addon_data = server.getAddonData(addon_index)
 		local is_sw_bpms = string.match(addon_data.name, patter_sw_bpms) ~= nil
 		local local_locations = {} -- List<location_index>
-		local local_labels = {} -- List<Label>
+		local local_labels = {} -- List<LocalLabel>
 
 		for location_index = 0, addon_data.location_count - 1 do
 			local location_data = server.getLocationData(addon_index, location_index)
@@ -147,7 +147,10 @@ function onCreate(is_world_create)
 							local tag_operator, tag_value = tag_matches
 							if tag_operator == "config_hide" then
 								for tag_config_index, tag_config in pairs(string.split(tag_value, "|")) do
-									table.insert(config_hide, tag_config)
+									local hide_addon_index, found = server.getAddonIndex(tag_config)
+									if found then
+										config_hide[hide_addon_index] = true
+									end
 								end
 							elseif tag_operator == "map_icon" then
 								local int_match = string.match(tag_value, pattern_int)
@@ -193,32 +196,21 @@ function onCreate(is_world_create)
 	end
 
 	if is_world_create then
-		local is_spawned_addons = {} -- Map<addon_index, true>
-		for spawned_buildings_index, spawned_building in pairs(g_savedata.spawned_buildings) do
-			spawned_addon_locations[spawned_building.addon_index] = true
-		end
+		local addons_managing = {} -- Map<addon_index, true>
 		for fields_index, field in pairs(fields) do
-			is_spawned_addons[field.addon_index] = nil
-		end
-		for spawned_addons_index, is_spawned_addon in pairs(is_spawned_addons) do
-			for spawned_buildings_index = #g_savedata.spawned_buildings, 1, -1 do
-				if g_savedata.spawned_buildings[spawned_buildings_index].addon_index == spawned_addons_index then
-					table.remove(g_savedata.spawned_buildings, spawned_buildings_index)
-				end
-			end
+			addons_managing[field.addon_index] = true
 		end
 
-		for config_hide_index, hide_addon_name in pairs(config_hide) do
-			local hide_addon_index, found = server.getAddonIndex(hide_addon_name)
-			if found then
-				for spawned_buildings_index = #g_savedata.spawned_buildings, 1, -1 do
-					local spawned_building = g_savedata.spawned_buildings[spawned_buildings_index]
-					if hide_addon_index == spawned_building.addon_index then
-						despawnBuilding(spawned_building)
-						table.remove(g_savedata.spawned_buildings, spawned_buildings_index)
-						g_savedata.fields_spawning[field.addon_index] = false
-					end
-				end
+		for spawned_buildings_index = #g_savedata.spawned_buildings, 1, -1 do
+			local spawned_building = g_savedata.spawned_buildings[spawned_buildings_index]
+			if config_hide[spawned_building.addon_index] ~= nil then
+				table.remove(g_savedata.spawned_buildings, spawned_buildings_index)
+				despawnBuilding(spawned_building)
+				g_savedata.fields_spawning[spawned_building.addon_index] = false
+			elseif addons_managing[spawned_building.addon_index] == nil then
+				table.remove(g_savedata.spawned_buildings, spawned_buildings_index)
+			end
+		end
 			end
 		end
 	end
