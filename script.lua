@@ -226,9 +226,7 @@ function onCreate(is_world_create)
 	-- == TODO: consider making method to use in onPlayerJoin
 	for fields_index, field in pairs(fields) do
 		if g_savedata.fields_spawning[field.addon_index] then
-			for labels_index, label in pairs(field.labels) do
-				server.addMapLabel(-1, label.ui_id, label.type, label.text, label.position.x, label.position.z)
-			end
+			showLabels(field.labels)
 		end
 	end
 
