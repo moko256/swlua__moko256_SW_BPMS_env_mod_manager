@@ -96,9 +96,9 @@ function onCreate(is_world_create)
 	zero_matrix = matrix.translation(0, 0, 0)
 	local this_addon_index = server.getAddonIndex()
 	
-	local patter_sw_bpms = string.regexp("SW_BPMS_", "i")
-	local pattern_sw_bpms_tag = string.regexp("^SW_BPMS_(.+?)=(.*)$", "i")
-	local pattern_int = string.regexp("^[0-9].+$")
+	local patter_sw_bpms = "SW_BPMS_|sw_bpms_"
+	local pattern_sw_bpms_tag = "^SW_BPMS_(.+?)=(.*)$", "i"
+	local pattern_int = "^[0-9].+$"
 	
 	local local_fields = {} -- List<Field>
 	local config_hide = {} -- List<addon_name>
