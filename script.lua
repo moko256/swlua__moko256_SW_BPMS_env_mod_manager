@@ -115,7 +115,7 @@ function onCreate(is_world_create)
 	local this_addon_index = server.getAddonIndex()
 	
 	local pattern_sw_bpms = "^[Ss][Ww]_[Bb][Pp][Mm][Ss]_"
-	local pattern_sw_bpms_tag = "^SW_BPMS_([^=].+)=(.+)$", "i"
+	local pattern_sw_bpms_tag = "^SW_BPMS_([^=]+)=(.+)$"
 	local pattern_int = "^[0-9].+$"
 	
 	local local_fields = {} -- List<Field>
