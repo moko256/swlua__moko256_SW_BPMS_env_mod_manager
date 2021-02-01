@@ -280,9 +280,6 @@ end
 function printToNotify(title, msg)
 	server.notify(-1, title, msg, 4)
 end
-function printf(fmt, ...)
-	server.announce("[?bm] printf", string.format(fmt, ...), -1)
-end
 
 
 function showField(field)
@@ -375,8 +372,20 @@ function cmd_d_n(peer_id, args)
 	end
 end
 
-function cmd_x()
-	--for debug
+function cmd_x(peer_id)
+	for k,v in pairs(fields) do
+		printToChat(peer_id, string.format("Addon [%d] %s", v.addon_index, v.name))
+		for k,v in pairs(v.location_indexes) do
+			printToChat(peer_id, string.format("|- Location %d", v))
+		end
+		for k,v in pairs(v.labels) do
+			printToChat(peer_id, string.format("|- Label %d %d %s %s %s", v.ui_id, v.icon, v.text, tostring(v.position.x), tostring(v.position.z)))
+		end
+	end
+	printToChat(peer_id, "Spawned buildings")
+	for k,v in pairs(g_savedata.spawned_buildings) do
+		printToChat(peer_id, string.format("|- Bld %d: %d %s", v.addon_index, v.id, v.type))
+	end
 end
 
 --List<{command_pattern, level: (0=all(NO OP), 1=authed, 2=admin), callback_function(peer_id, args)}>
@@ -393,20 +402,8 @@ cmds = {
 function onCustomCommand(full_message, peer_id, is_admin, is_auth, command)
 	if command == "?reload_scripts" then
 		onDestroy()
-	elseif command == "?d" then
-		printf("~~")
-		for k,v in pairs(fields) do
-			printf("a %d %d %s", k, v.addon_index, v.name)
-			for k,v in pairs(v.location_indexes) do
-				printf("	l %d %d", k, v)
-			end
-			for k,v in pairs(v.labels) do
-				printf("	m %d %d %s %d %d", v.ui_id, v.icon, v.text, v.position.x, v.position.y)
-			end
-		end
-		for k,v in pairs(g_savedata.spawned_buildings) do
-			printf("s %d %s %d", v.id, v.type, v.addon_index)
-		end
+	elseif command == "?help" then
+		printToChat(peer_id, "?bm h")
 	elseif command == "?bm" then
 		local args = string.sub(full_message, 5, -1)
 		printToChat(peer_id, "# "..full_message)
