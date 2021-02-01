@@ -357,17 +357,18 @@ function cmd_x()
 	--for debug
 end
 
+--List<{command_pattern, level: (0=all(NO OP), 1=authed, 2=admin), callback_function(peer_id, args)}>
 cmds = {
-	{"l", cmd_l},
-	{"s a", cmd_s_a},
-	{"s ([0-9]+)", cmd_s_n},
-	{"d a", cmd_d_a},
-	{"d ([0-9]+)", cmd_d_n},
-	{"h", cmd_h},
-	{"x", cmd_x},
+	{"l", 1, cmd_l},
+	{"s a", 2, cmd_s_a},
+	{"s ([0-9]+)", 2, cmd_s_n},
+	{"d a", 2, cmd_d_a},
+	{"d ([0-9]+)", 2, cmd_d_n},
+	{"h", 1, cmd_h},
+	{"x", 2, cmd_x},
 }
 
-function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, command, one, two, three, four, five)
+function onCustomCommand(full_message, peer_id, is_admin, is_auth, command)
 	if command == "?d" then
 		printf("~~")
 		for k,v in pairs(fields) do
@@ -388,9 +389,15 @@ function onCustomCommand(full_message, user_peer_id, is_admin, is_auth, command,
 		for _k, cmd in pairs(cmds) do
 			local matches = string.match(args, "^%s-"..string.gsub(cmd[1], " ", "%%s-").."%s-$")
 			if matches ~= nil then
-				cmd[2](user_peer_id, matches)
-				break
+				local pm = cmd[2]
+				if (pm == 1 and is_auth) or (pm == 2 and (is_auth and is_admin)) then
+					cmd[3](peer_id, matches)
+				else
+					printToChat(peer_id, "Command failed: Permission denided.")
+				end
+				return
 			end
 		end
+		printToChat(peer_id, string.format("No such command: '%s'. Try '?bm h'", full_message))
 	end
 end
