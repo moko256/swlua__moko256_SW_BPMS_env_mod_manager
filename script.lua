@@ -259,18 +259,15 @@ function onSpawnAddonComponent(building_id, component_name, building_type, addon
 end
 
 
-function printf(fmt, ...)
-	server.announce("printf", string.format(fmt, ...), -1)
-end
-
-
 -- Commands
 function printToChat(peer_id, msg)
 	server.announce("[?bm]", msg, peer_id)
 end
-
-function printToNotify(title, msg, type)
-	server.notify(-1, title, msg, type)
+function printToNotify(title, msg)
+	server.notify(-1, title, msg, 4)
+end
+function printf(fmt, ...)
+	server.announce("[?bm] printf", string.format(fmt, ...), -1)
 end
 
 
@@ -281,17 +278,17 @@ function showField(field)
 	end
 end
 
+
+help_text = "--- SW-BMPS Building Manager ---\n"
+	.."?bm l              : display all buildings\n"
+	.."?bm s a          : spawn all\n"
+	.."?bm s [num] : spawn at num\n"
+	.."?bm d a         : despawn all\n"
+	.."?bm d [num]: despawn at num\n"
+	.."?bm h            : display this help and exit"
+
 function cmd_h(peer_id)
-	printToChat(
-		peer_id,
-		"--- SW-BMPS Building Manager ---\n"
-		.."?bm l              : display all buildings\n"
-		.."?bm s a          : spawn all\n"
-		.."?bm s [num] : spawn at num\n"
-		.."?bm d a         : despawn all\n"
-		.."?bm d [num]: despawn at num\n"
-		.."?bm h            : display this help and exit"
-	)
+	printToChat(peer_id, help_text)
 end
 
 function cmd_l(peer_id)
@@ -309,15 +306,14 @@ function cmd_l(peer_id)
 end
 
 function cmd_s_a(peer_id)
-	printf("a")
 	for _k, field in pairs(fields) do
 		showField(field)
 	end
-	-- notify
+	printToChat(peer_id, "Spawned: All")
+	printToNotify("Env Mods", "All env mods spawned")
 end
 
 function cmd_d_a(peer_id)
-	printf("b")
 	for _k, building in pairs(g_savedata.spawned_buildings) do
 		despawnBuilding(building)
 	end
@@ -325,20 +321,24 @@ function cmd_d_a(peer_id)
 		hideLabels(field.labels)
 		g_savedata.fields_spawning[field.addon_index] = false
 	end
-	-- notify
+	printToChat(peer_id, "Despawned: All")
+	printToNotify("Env Mods", "All env mods despawned")
 end
 
 function cmd_s_n(peer_id, args)
-	printf("c")
 	local field_ctrl_id = tonumber(args)
 	if 1 <= field_ctrl_id and field_ctrl_id <= #fields then
-		showField(fields[field_ctrl_id])
-		-- notify
+		local field = fields[field_ctrl_id]
+		showField(field)
+
+		printToChat(peer_id, string.format("Spawned: '%s'", field.name))
+		printToNotify("Env Mods", string.format("An env mod spawned: '%s'", field.name))
+	else
+		printToChat(peer_id, string.format("Command failed: 'num' was out of range. expect: [1, %d] actual: %s", #fields, args))
 	end
 end
 
 function cmd_d_n(peer_id, args)
-	printf("d")
 	local field_ctrl_id = tonumber(args)
 	if 1 <= field_ctrl_id and field_ctrl_id <= #fields then
 		local field = fields[field_ctrl_id]
@@ -350,6 +350,11 @@ function cmd_d_n(peer_id, args)
 		end
 		hideLabels(field.labels)
 		g_savedata.fields_spawning[addon_index] = false
+
+		printToChat(peer_id, string.format("Despawned: '%s'", field.name))
+		printToNotify("Env Mods", string.format("An env mod despawned: '%s'", field.name))
+	else
+		printToChat(peer_id, string.format("Command failed: 'num' was out of range. expect: [1, %d] actual: %s", #fields, args))
 	end
 end
 
@@ -385,7 +390,7 @@ function onCustomCommand(full_message, peer_id, is_admin, is_auth, command)
 		end
 	elseif command == "?bm" then
 		local args = string.sub(full_message, 5, -1)
-		printf(args)
+		printToChat(peer_id, "# "..full_message)
 		for _k, cmd in pairs(cmds) do
 			local matches = string.match(args, "^%s-"..string.gsub(cmd[1], " ", "%%s-").."%s-$")
 			if matches ~= nil then
