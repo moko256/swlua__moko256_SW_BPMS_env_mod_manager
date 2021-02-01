@@ -90,7 +90,7 @@ end
 
 function hideLabels(labels)
 	for labels_index, label in pairs(labels) do
-		server.removeMapObject(-1, label.ui_id)
+		server.removeMapLabel(-1, label.ui_id)
 	end
 end
 
@@ -162,7 +162,7 @@ function onCreate(is_world_create)
 						end
 					end
 
-					if component_data.display_name ~= nil then
+					if component_data.display_name ~= "" then
 						table.insert(local_labels, LocalLabel(server.getMapID(), label_icon, component_data.display_name, label_position, location_data.tile))
 					end
 				end
@@ -236,6 +236,11 @@ function onCreate(is_world_create)
 	created = true
 end
 
+function onDestroy()
+	for fields_index, field in pairs(fields) do
+		hideLabels(field.labels)
+	end
+end
 
 function onPlayerJoin(steam_id, name, peer_id, admin, auth)
 	for fields_index, field in pairs(fields) do
@@ -374,7 +379,9 @@ cmds = {
 }
 
 function onCustomCommand(full_message, peer_id, is_admin, is_auth, command)
-	if command == "?d" then
+	if command == "?reload_scripts" then
+		onDestroy()
+	elseif command == "?d" then
 		printf("~~")
 		for k,v in pairs(fields) do
 			printf("a %d %d %s", k, v.addon_index, v.name)
