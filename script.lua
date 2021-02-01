@@ -135,13 +135,18 @@ function onCreate(is_world_create)
 			if addon_index == this_addon_index then
 				tile_data[location_data.tile] = location_index
 			elseif is_sw_bpms ~= is_env then -- xor
-				table.insert(local_locations, location_index)
+				local exclude_this_location = location_data.component_count == 0
 
 				for component_index = 0, location_data.component_count - 1 do
 					local component_data = server.getLocationComponentData(addon_index, location_index, component_index)
 					local label_icon = 1 -- cross
 					local cx, cy, cz = matrix.position(component_data.transform)
 					local label_position = MapPosition(cx, cz)
+
+					if component_data.type == "zone" or component_data.type == "cargo_zone" then
+						exclude_this_location = true
+						break -- Env mod zones may be used by the other addons (like official missions) so that this addon does not manage.
+					end
 
 					for tag_index, tag in pairs(component_data.tags) do
 						local _, _, tag_operator, tag_value = string.find(tag, pattern_sw_bpms_tag)
@@ -165,6 +170,10 @@ function onCreate(is_world_create)
 					if component_data.display_name ~= "" then
 						table.insert(local_labels, LocalLabel(server.getMapID(), label_icon, component_data.display_name, label_position, location_data.tile))
 					end
+				end
+
+				if not exclude_this_location then
+					table.insert(local_locations, location_index)
 				end
 			end
 		end
