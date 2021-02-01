@@ -322,6 +322,7 @@ function cmd_d_a(peer_id)
 		despawnBuilding(building)
 	end
 	for _k, field in pairs(fields) do
+		hideLabels(field.labels)
 		g_savedata.fields_spawning[field.addon_index] = false
 	end
 	-- notify
@@ -340,12 +341,14 @@ function cmd_d_n(peer_id, args)
 	printf("d")
 	local field_ctrl_id = tonumber(args)
 	if 1 <= field_ctrl_id and field_ctrl_id <= #fields then
-		local addon_index = fields[field_ctrl_id].addon_index
+		local field = fields[field_ctrl_id]
+		local addon_index = field.addon_index
 		for _k, building in pairs(g_savedata.spawned_buildings) do
 			if building.addon_index == addon_index then
 				despawnBuilding(building)
 			end
 		end
+		hideLabels(field.labels)
 		g_savedata.fields_spawning[addon_index] = false
 	end
 end
