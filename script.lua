@@ -33,12 +33,13 @@ fields = {} -- List<field_ctrl_id, Field>
 
 zero_matrix = nil -- matrix
 
-function Field(addon_index, location_indexes, labels, name)
+function Field(addon_index, location_indexes, labels, name, normal_hide)
 	return {
 		addon_index = addon_index,
 		location_indexes = location_indexes, -- List<location_index>
 		labels = labels, -- List<Label>
 		name = name,
+		normal_hide = normal_hide,
 	}
 end
 
@@ -207,7 +208,8 @@ function onCreate(is_world_create)
 				server.removeMapID(-1, local_label.ui_id)
 			end
 		end
-		table.insert(fields, Field(local_field.addon_index, local_field.location_indexes, labels, local_field.name))
+		local normal_hide = config_hide[spawned_building.addon_index] ~= nil
+		table.insert(fields, Field(local_field.addon_index, local_field.location_indexes, labels, local_field.name, normal_hide))
 	end
 
 	if is_world_create then
@@ -228,7 +230,7 @@ function onCreate(is_world_create)
 		end
 
 		for field_ctrl_id, field in pairs(fields) do
-			if config_hide[field.addon_index] == nil and g_savedata.fields_spawning[field.addon_index] == false then
+			if (not field.normal_hide) and g_savedata.fields_spawning[field.addon_index] == false then
 				spawnField(field)
 				g_savedata.fields_spawning[field.addon_index] = true
 			end
@@ -318,7 +320,9 @@ end
 
 function cmd_s_a(peer_id)
 	for _k, field in pairs(fields) do
-		showField(field)
+		if (not field.normal_hide) then
+			showField(field)
+		end
 	end
 	printToChat(peer_id, "Spawned: All")
 	printToNotify("Env Mods", "All env mods spawned")
