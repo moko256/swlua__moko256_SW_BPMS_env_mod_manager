@@ -153,16 +153,15 @@ function onCreate(is_world_create)
 						local _, _, tag_operator, tag_value = string.find(tag, pattern_sw_bpms_tag)
 						if tag_operator ~= nil and tag_value ~= nil then
 							if tag_operator == "config_hide" then
-								for tag_config_index, tag_config in pairs(string.split(tag_value, "|")) do
-									local hide_addon_index, found = server.getAddonIndex(tag_config)
-									if found then
-										config_hide[hide_addon_index] = true
-									end
+								exclude_this_location = true -- to prevent spawning
+								local hide_addon_index, found = server.getAddonIndex(tag_value)
+								if found then
+									config_hide[hide_addon_index] = true
 								end
 							elseif tag_operator == "map_icon" then
 								local int_match = string.match(tag_value, pattern_int)
 								if int_match ~= nil then
-									label_icon = tonumber(int_match)
+									label_icon = tonumber(tag_value)
 								end
 							end
 						end
