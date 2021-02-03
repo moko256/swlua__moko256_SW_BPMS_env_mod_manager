@@ -83,7 +83,7 @@ function MapPosition(x, z)
 	return { x = x, z = z }
 end
 
-function showLabels(labels) -- List<Label>
+function showLabels(labels, peer_id) -- List<Label>
 	for labels_index, label in pairs(labels) do
 		server.addMapLabel(-1, label.ui_id, label.icon, label.text, label.position.x, label.position.z)
 	end
@@ -99,7 +99,15 @@ function spawnField(field) -- Field
 	for locations_loop_i, location_index in pairs(field.location_indexes) do
 		server.spawnAddonLocation(zero_matrix, field.addon_index, location_index)
 	end
-	showLabels(field.labels)
+	showLabels(field.labels, -1)
+end
+
+function showAllLabelSpawned(peer_id)
+	for fields_index, field in pairs(fields) do
+		if g_savedata.fields_spawning[field.addon_index] then
+			showLabels(field.labels, peer_id)
+		end
+	end
 end
 
 function despawnBuilding(building) -- Building
@@ -236,12 +244,7 @@ function onCreate(is_world_create)
 		end
 	end
 	
-	-- == TODO: consider making method to use in onPlayerJoin
-	for fields_index, field in pairs(fields) do
-		if g_savedata.fields_spawning[field.addon_index] then
-			showLabels(field.labels)
-		end
-	end
+	showAllLabelSpawned(-1)
 
 	created = true
 end
@@ -253,11 +256,7 @@ function onDestroy()
 end
 
 function onPlayerJoin(steam_id, name, peer_id, admin, auth)
-	for fields_index, field in pairs(fields) do
-		if g_savedata.fields_spawning[field.addon_index] then
-			showLabels(field.labels)
-		end
-	end
+	showAllLabelSpawned(peer_id)
 end
 
 function onSpawnAddonComponent(building_id, component_name, building_type, addon_index)
