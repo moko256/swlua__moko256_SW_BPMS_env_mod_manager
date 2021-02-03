@@ -208,7 +208,7 @@ function onCreate(is_world_create)
 				server.removeMapID(-1, local_label.ui_id)
 			end
 		end
-		local normal_hide = config_hide[spawned_building.addon_index] ~= nil
+		local normal_hide = config_hide[local_field.addon_index] ~= nil
 		table.insert(fields, Field(local_field.addon_index, local_field.location_indexes, labels, local_field.name, normal_hide))
 	end
 
