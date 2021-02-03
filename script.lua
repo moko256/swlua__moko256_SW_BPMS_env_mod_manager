@@ -276,8 +276,8 @@ end
 
 
 -- Commands
-function printToChat(peer_id, msg)
-	server.announce("[?bm]", msg, peer_id)
+function printToChat(full_cmd, peer_id, msg)
+	server.announce("["..full_cmd.."]", msg, peer_id)
 end
 function printToNotify(title, msg)
 	server.notify(-1, title, msg, 4)
@@ -300,11 +300,11 @@ help_text = "--- moko256 SW-BPMS env mod manager ---\n"
 	.."?bm d [num]: despawn at num\n"
 	.."?bm h            : display this help"
 
-function cmd_h(peer_id)
-	printToChat(peer_id, help_text)
+function cmd_h(full_cmd, peer_id)
+	printToChat(full_cmd, peer_id, help_text)
 end
 
-function cmd_l(peer_id)
+function cmd_l(full_cmd, peer_id)
 	local msg = "[num] O(spawned)/X 'name'"
 	for field_ctrl_id, field in ipairs(fields) do
 		local status = nil
@@ -315,20 +315,20 @@ function cmd_l(peer_id)
 		end
 		msg = msg..string.format("\n[%d] %s '%s'", field_ctrl_id, status, field.name)
 	end
-	printToChat(peer_id, msg.."\nend")
+	printToChat(full_cmd, peer_id, msg.."\nend")
 end
 
-function cmd_s_a(peer_id)
+function cmd_s_a(full_cmd, peer_id)
 	for _k, field in pairs(fields) do
 		if (not field.normal_hide) then
 			showField(field)
 		end
 	end
-	printToChat(peer_id, "Spawned: All")
+	printToChat(full_cmd, peer_id, "Spawned: All")
 	printToNotify("Env Mods", "All env mods spawned")
 end
 
-function cmd_d_a(peer_id)
+function cmd_d_a(full_cmd, peer_id)
 	for _k, building in pairs(g_savedata.spawned_buildings) do
 		despawnBuilding(building)
 	end
@@ -337,24 +337,24 @@ function cmd_d_a(peer_id)
 		hideLabels(field.labels)
 		g_savedata.fields_spawning[field.addon_index] = false
 	end
-	printToChat(peer_id, "Despawned: All")
+	printToChat(full_cmd, peer_id, "Despawned: All")
 	printToNotify("Env Mods", "All env mods despawned")
 end
 
-function cmd_s_n(peer_id, args)
+function cmd_s_n(full_cmd, peer_id, args)
 	local field_ctrl_id = tonumber(args)
 	if 1 <= field_ctrl_id and field_ctrl_id <= #fields then
 		local field = fields[field_ctrl_id]
 		showField(field)
 
-		printToChat(peer_id, string.format("Spawned: '%s'", field.name))
+		printToChat(full_cmd, peer_id, string.format("Spawned: '%s'", field.name))
 		printToNotify("Env Mods", string.format("An env mod spawned: '%s'", field.name))
 	else
-		printToChat(peer_id, string.format("Command failed: 'num' was out of range. expect: [1, %d] actual: %s", #fields, args))
+		printToChat(full_cmd, peer_id, string.format("Command failed: 'num' was out of range. expect: [1, %d] actual: %s", #fields, args))
 	end
 end
 
-function cmd_d_n(peer_id, args)
+function cmd_d_n(full_cmd, peer_id, args)
 	local field_ctrl_id = tonumber(args)
 	if 1 <= field_ctrl_id and field_ctrl_id <= #fields then
 		local field = fields[field_ctrl_id]
@@ -369,26 +369,26 @@ function cmd_d_n(peer_id, args)
 		hideLabels(field.labels)
 		g_savedata.fields_spawning[addon_index] = false
 
-		printToChat(peer_id, string.format("Despawned: '%s'", field.name))
+		printToChat(full_cmd, peer_id, string.format("Despawned: '%s'", field.name))
 		printToNotify("Env Mods", string.format("An env mod despawned: '%s'", field.name))
 	else
-		printToChat(peer_id, string.format("Command failed: 'num' was out of range. expect: [1, %d] actual: %s", #fields, args))
+		printToChat(full_cmd, peer_id, string.format("Command failed: 'num' was out of range. expect: [1, %d] actual: %s", #fields, args))
 	end
 end
 
-function cmd_x(peer_id)
+function cmd_x(full_cmd, peer_id)
 	for k,v in pairs(fields) do
-		printToChat(peer_id, string.format("Addon [%d] %s", v.addon_index, v.name))
+		printToChat(full_cmd, peer_id, string.format("Addon [%d] %s", v.addon_index, v.name))
 		for k,v in pairs(v.location_indexes) do
-			printToChat(peer_id, string.format("|- Location %d", v))
+			printToChat(full_cmd, peer_id, string.format("|- Location %d", v))
 		end
 		for k,v in pairs(v.labels) do
-			printToChat(peer_id, string.format("|- Label %d %d %s %s %s", v.ui_id, v.icon, v.text, tostring(v.position.x), tostring(v.position.z)))
+			printToChat(full_cmd, peer_id, string.format("|- Label %d %d %s %s %s", v.ui_id, v.icon, v.text, tostring(v.position.x), tostring(v.position.z)))
 		end
 	end
-	printToChat(peer_id, "Spawned buildings")
+	printToChat(full_cmd, peer_id, "Spawned buildings")
 	for k,v in pairs(g_savedata.spawned_buildings) do
-		printToChat(peer_id, string.format("|- Bld %d: %d %s", v.addon_index, v.id, v.type))
+		printToChat(full_cmd, peer_id, string.format("|- Bld %d: %d %s", v.addon_index, v.id, v.type))
 	end
 end
 
@@ -407,22 +407,23 @@ function onCustomCommand(full_message, peer_id, is_admin, is_auth, command)
 	if command == "?reload_scripts" then
 		onDestroy()
 	elseif command == "?help" then
-		printToChat(peer_id, "?bm h")
+		printToChat("?bm", peer_id, "?bm h")
 	elseif command == "?bm" then
 		local args = string.sub(full_message, 5, -1)
-		printToChat(peer_id, "# "..full_message)
+		local full_cmd = string.gsub(full_message, "%s+", " ")
+		-- printToChat(peer_id, "# "..full_message)
 		for _k, cmd in pairs(cmds) do
 			local matches = string.match(args, "^%s-"..string.gsub(cmd[1], " ", "%%s-").."%s-$")
 			if matches ~= nil then
 				local pm = cmd[2]
 				if (pm == 1 and is_auth) or (pm == 2 and (is_auth and is_admin)) then
-					cmd[3](peer_id, matches)
+					cmd[3](full_cmd, peer_id, matches)
 				else
-					printToChat(peer_id, "Command failed: Permission denided.")
+					printToChat(full_cmd, peer_id, "Command failed: Permission denided.")
 				end
 				return
 			end
 		end
-		printToChat(peer_id, string.format("No such command: '%s'. Try '?bm h'", full_message))
+		printToChat(full_cmd, peer_id, string.format("No such command: '%s'. Try '?bm h'", full_message))
 	end
 end
