@@ -4,11 +4,11 @@
 -- Created by @moko256
 
 --[[
-Target version: v1.0.32
+Last checked version: v1.0.32
 
 Definitions:
 - tile zero point: a global matrix to be (0,0,0) in local matrix in each tile.
-- config addon: addon comopnents that have settings with specific tag. (tags: SW_BPMS_config_hide=addon_name1[|addon_name2..])
+- config addon: addon comopnents that have settings with specific tag. (tags: SW_BPMS_config_hide=addon_name1[,SW_BPMS_config_hide=addon_name2..])
 - label = icon + text
 - building = (vehicle / object) that are spawned
 - position: a building's global matrix
@@ -391,7 +391,7 @@ function cmd_x(peer_id)
 	end
 end
 
---List<{command_pattern, level: (0=all(NO OP), 1=authed, 2=admin), callback_function(peer_id, args)}>
+--List<{command_pattern, level: (0=all(NOT IMPLEMENTED), 1=authed, 2=admin), callback_function(peer_id, args)}>
 cmds = {
 	{"l", 1, cmd_l},
 	{"s a", 2, cmd_s_a},
