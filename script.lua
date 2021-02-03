@@ -1,10 +1,12 @@
 -- SPDX-License-Identifier: MIT
 
--- SW_BPMS env mod manager
--- Created by @moko256
+-- moko256 SW-BPMS env mod manager
+-- Created by moko256
 
 --[[
 Last checked version: v1.0.32
+Source code repository: https://github.com/moko256/swlua__SW_BPMS_building_manager/blob/main/script.lua
+Steam workshop: 
 
 Definitions:
 - tile zero point: a global matrix to be (0,0,0) in local matrix in each tile.
@@ -290,20 +292,20 @@ function showField(field)
 end
 
 
-help_text = "--- SW-BMPS Building Manager ---\n"
-	.."?bm l              : display all buildings\n"
+help_text = "--- moko256 SW-BPMS env mod manager ---\n"
+	.."?bm l              : display all addons managing\n"
 	.."?bm s a          : spawn all\n"
 	.."?bm s [num] : spawn at num\n"
 	.."?bm d a         : despawn all\n"
 	.."?bm d [num]: despawn at num\n"
-	.."?bm h            : display this help and exit"
+	.."?bm h            : display this help"
 
 function cmd_h(peer_id)
 	printToChat(peer_id, help_text)
 end
 
 function cmd_l(peer_id)
-	local msg = "List of managing:\n[num] O==spawned 'name'"
+	local msg = "[num] O(spawned)/X 'name'"
 	for field_ctrl_id, field in ipairs(fields) do
 		local status = nil
 		if g_savedata.fields_spawning[field.addon_index] then
