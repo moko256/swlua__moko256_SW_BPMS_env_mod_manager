@@ -376,20 +376,25 @@ function cmd_d_n(full_cmd, peer_id, args)
 	end
 end
 
-function cmd_x(full_cmd, peer_id)
+function cmd_x(full_cmd, peer_id, mode)
+	local out = "-- debug infos --"
 	for k,v in pairs(fields) do
-		printToChat(full_cmd, peer_id, string.format("Addon [%d] %s", v.addon_index, v.name))
+		out = out..string.format("\nAddon: [%d] %s", v.addon_index, v.name)
+		out = out.."\n|- Location:"
 		for k,v in pairs(v.location_indexes) do
-			printToChat(full_cmd, peer_id, string.format("|- Location %d", v))
+			out = out..string.format(" %d,", v)
 		end
 		for k,v in pairs(v.labels) do
-			printToChat(full_cmd, peer_id, string.format("|- Label %d %d %s %s %s", v.ui_id, v.icon, v.text, tostring(v.position.x), tostring(v.position.z)))
+			out = out..string.format("\n|- Label %d %d %s %s %s", v.ui_id, v.icon, v.text, tostring(v.position.x), tostring(v.position.z))
 		end
 	end
-	printToChat(full_cmd, peer_id, "Spawned buildings")
-	for k,v in pairs(g_savedata.spawned_buildings) do
-		printToChat(full_cmd, peer_id, string.format("|- Bld %d: %d %s", v.addon_index, v.id, v.type))
+	if mode == " b" then
+		out = out.."\nSpawned buildings:"
+		for k,v in pairs(g_savedata.spawned_buildings) do
+			out = out..string.format("\n|- Bld %d: %d %s", v.addon_index, v.id, v.type)
+		end
 	end
+	printToChat(full_cmd, peer_id, out)
 end
 
 --List<{command_pattern, level: (0=all(NOT IMPLEMENTED), 1=authed, 2=admin), callback_function(peer_id, args)}>
@@ -400,7 +405,7 @@ cmds = {
 	{"d a", 2, cmd_d_a},
 	{"d ([0-9]+)", 2, cmd_d_n},
 	{"h", 1, cmd_h},
-	{"x", 2, cmd_x},
+	{"x(.*)", 2, cmd_x},
 }
 
 function onCustomCommand(full_message, peer_id, is_admin, is_auth, command)
