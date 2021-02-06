@@ -25,8 +25,8 @@ Comment type annotating format:
 --]]
 
 g_savedata = {
-	spawned_buildings = {}, -- List<Building>
-	tile_zero_point = {}, -- List<tile_filename, MapPosition>
+	spawned_buildings = {}, -- List<addon_index, List<Building>?>
+	tile_zero_points = {}, -- List<tile_filename, MapPosition>
 	fields_spawning = {}, -- List<addon_index, bool>
 }
 
@@ -129,8 +129,8 @@ function onCreate(is_world_create)
 	local pattern_int = "^[0-9]+$"
 	
 	local local_fields = {} -- List<Field>
-	local config_hide = {} -- Map<addon_name, true>
-	local use_tile = {} -- Map<tile_filename, true>
+	local config_hide = {} -- Map<addon_name, true?>
+	local use_tile = {} -- Map<tile_filename, true?>
 	
 	for addon_index = 0, server.getAddonCount() - 1 do
 		local addon_data = server.getAddonData(addon_index)
@@ -199,17 +199,17 @@ function onCreate(is_world_create)
 	for location_index = 0, this_addon_data.location_count - 1 do
 		local location_data = server.getLocationData(this_addon_index, location_index)
 		local tile_filename = location_data.tile
-		if (use_tile[tile_filename] ~= nil) and (g_savedata.tile_zero_point[tile_filename] == nil) then
+		if (use_tile[tile_filename] ~= nil) and (g_savedata.tile_zero_points[tile_filename] == nil) then
 			local map_position_matrix = server.spawnAddonLocation(zero_matrix, this_addon_index, location_index)
 			local gx, gy, gz = matrix.position(map_position_matrix)
-			g_savedata.tile_zero_point[tile_filename] = MapPosition(gx, gz)
+			g_savedata.tile_zero_points[tile_filename] = MapPosition(gx, gz)
 		end
 	end
 
 	for local_fields_index, local_field in pairs(local_fields) do
 		local labels = {}
 		for local_labels_index, local_label in pairs(local_field.labels) do
-			local map_position = g_savedata.tile_zero_point[local_label.tile_filename]
+			local map_position = g_savedata.tile_zero_points[local_label.tile_filename]
 			if map_position ~= nil then
 				local mx, mz = local_label.position.x, local_label.position.z
 				local gx, gz = map_position.x, map_position.z
@@ -226,14 +226,15 @@ function onCreate(is_world_create)
 			addons_managing[field.addon_index] = true
 		end
 
-		for spawned_buildings_index = #g_savedata.spawned_buildings, 1, -1 do
-			local spawned_building = g_savedata.spawned_buildings[spawned_buildings_index]
-			if config_hide[spawned_building.addon_index] ~= nil then
-				table.remove(g_savedata.spawned_buildings, spawned_buildings_index)
-				despawnBuilding(spawned_building)
-				g_savedata.fields_spawning[spawned_building.addon_index] = false
-			elseif addons_managing[spawned_building.addon_index] == nil then
-				table.remove(g_savedata.spawned_buildings, spawned_buildings_index)
+		for addon_index, spawned_buildings in pairs(g_savedata.spawned_buildings) do
+			if config_hide[addon_index] ~= nil then
+				for spawned_building_index, spawned_building in pairs(spawned_buildings) do
+					g_savedata.spawned_buildings[addon_index][spawned_building_index] = nil
+					despawnBuilding(spawned_building)
+				end
+				g_savedata.fields_spawning[addon_index] = false
+			elseif addons_managing[addon_index] == nil then
+				g_savedata.spawned_buildings[addon_index] = nil
 			end
 		end
 
@@ -269,7 +270,10 @@ function onSpawnAddonComponent(building_id, component_name, building_type, addon
 		end
 	end
 	if (created and addon_contains) or (not created) then
-		table.insert(g_savedata.spawned_buildings, Building(building_id, building_type, addon_index))
+		if g_savedata.spawned_buildings[addon_index] == nil then
+			g_savedata.spawned_buildings[addon_index] = {}
+		end
+		table.insert(g_savedata.spawned_buildings[addon_index], Building(building_id, building_type, addon_index))
 	end
 end
 
@@ -288,6 +292,18 @@ function showField(field)
 		g_savedata.fields_spawning[field.addon_index] = true
 		spawnField(field)
 	end
+end
+
+function hideField(field)
+	hideLabels(field.labels)
+	local addon_index = field.addon_index
+	if g_savedata.spawned_buildings[addon_index] ~= nil then
+		for building_index, building in pairs(g_savedata.spawned_buildings[addon_index]) do
+			despawnBuilding(building)
+			g_savedata.spawned_buildings[addon_index][building_index] = nil
+		end
+	end
+	g_savedata.fields_spawning[addon_index] = false
 end
 
 
@@ -328,13 +344,8 @@ function cmd_s_a(full_cmd, peer_id)
 end
 
 function cmd_d_a(full_cmd, peer_id)
-	for _k, building in pairs(g_savedata.spawned_buildings) do
-		despawnBuilding(building)
-	end
-	g_savedata.spawned_buildings = {}
 	for _k, field in pairs(fields) do
-		hideLabels(field.labels)
-		g_savedata.fields_spawning[field.addon_index] = false
+		hideField(field)
 	end
 	printToChat(full_cmd, peer_id, "Despawned: All")
 	printToNotify("Env Mods", "All env mods despawned")
@@ -357,16 +368,7 @@ function cmd_d_n(full_cmd, peer_id, args)
 	local field_ctrl_id = tonumber(args)
 	if 1 <= field_ctrl_id and field_ctrl_id <= #fields then
 		local field = fields[field_ctrl_id]
-		local addon_index = field.addon_index
-		for building_index = #g_savedata.spawned_buildings, 1, -1 do
-			local building = g_savedata.spawned_buildings[building_index]
-			if building.addon_index == addon_index then
-				despawnBuilding(building)
-				table.remove(g_savedata.spawned_buildings, building_index)
-			end
-		end
-		hideLabels(field.labels)
-		g_savedata.fields_spawning[addon_index] = false
+		hideField(field)
 
 		printToChat(full_cmd, peer_id, string.format("Despawned: [%d] '%s'", field_ctrl_id, field.name))
 		printToNotify("Env Mods", string.format("An env mod despawned: '%s'", field.name))
@@ -386,11 +388,13 @@ function cmd_x(full_cmd, peer_id, mode)
 		for k,v in pairs(v.labels) do
 			out = out..string.format("\n|- Label %d %d %s %s %s", v.ui_id, v.icon, v.text, tostring(v.position.x), tostring(v.position.z))
 		end
-	end
-	if mode == " b" then
-		out = out.."\nSpawned buildings:"
-		for k,v in pairs(g_savedata.spawned_buildings) do
-			out = out..string.format("\n|- Bld %d: %d %s", v.addon_index, v.id, v.type)
+		if mode == " b" then
+			local spawned_buildings =  g_savedata.spawned_buildings[v.addon_index]
+			if spawned_buildings ~= nil then
+				for k,v in pairs() do
+					out = out..string.format("\n|- Bld %d: %d %s", v.addon_index, v.id, v.type)
+				end
+			end
 		end
 	end
 	printToChat(full_cmd, peer_id, out)
