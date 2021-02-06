@@ -391,7 +391,7 @@ function cmd_x(full_cmd, peer_id, mode)
 		if mode == " b" then
 			local spawned_buildings =  g_savedata.spawned_buildings[v.addon_index]
 			if spawned_buildings ~= nil then
-				for k,v in pairs() do
+				for k,v in pairs(spawned_buildings) do
 					out = out..string.format("\n|- Bld %d: %d %s", v.addon_index, v.id, v.type)
 				end
 			end
