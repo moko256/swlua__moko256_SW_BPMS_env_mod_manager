@@ -347,7 +347,7 @@ function cmd_s_n(full_cmd, peer_id, args)
 		local field = fields[field_ctrl_id]
 		showField(field)
 
-		printToChat(full_cmd, peer_id, string.format("Spawned: '%s'", field.name))
+		printToChat(full_cmd, peer_id, string.format("Spawned: [%d] '%s'", field_ctrl_id, field.name))
 		printToNotify("Env Mods", string.format("An env mod spawned: '%s'", field.name))
 	else
 		printToChat(full_cmd, peer_id, string.format("Command failed: 'num' was out of range. expect: [1, %d] actual: %s", #fields, args))
@@ -369,7 +369,7 @@ function cmd_d_n(full_cmd, peer_id, args)
 		hideLabels(field.labels)
 		g_savedata.fields_spawning[addon_index] = false
 
-		printToChat(full_cmd, peer_id, string.format("Despawned: '%s'", field.name))
+		printToChat(full_cmd, peer_id, string.format("Despawned: [%d] '%s'", field_ctrl_id, field.name))
 		printToNotify("Env Mods", string.format("An env mod despawned: '%s'", field.name))
 	else
 		printToChat(full_cmd, peer_id, string.format("Command failed: 'num' was out of range. expect: [1, %d] actual: %s", #fields, args))
