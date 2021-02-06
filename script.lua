@@ -363,7 +363,7 @@ function cmd_d_n(full_cmd, peer_id, args)
 			local building = g_savedata.spawned_buildings[building_index]
 			if building.addon_index == addon_index then
 				despawnBuilding(building)
-				table.remove(building_index)
+				table.remove(g_savedata.spawned_buildings, building_index)
 			end
 		end
 		hideLabels(field.labels)
