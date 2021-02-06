@@ -71,9 +71,8 @@ function Label(ui_id, icon, text, position)
 	}
 end
 
-function LocalLabel(ui_id, icon, text, position, tile_filename)
+function LocalLabel(icon, text, position, tile_filename)
 	return {
-		ui_id = ui_id,
 		icon = icon,
 		text = text,
 		position = position, -- MapPosition
@@ -131,7 +130,7 @@ function onCreate(is_world_create)
 	
 	local local_fields = {} -- List<Field>
 	local config_hide = {} -- Map<addon_name, true>
-	local tile_data = {} -- Map<tile_filename, location_index>
+	local use_tile = {} -- Map<tile_filename, true>
 	
 	for addon_index = 0, server.getAddonCount() - 1 do
 		local addon_data = server.getAddonData(addon_index)
@@ -143,9 +142,7 @@ function onCreate(is_world_create)
 			local location_data = server.getLocationData(addon_index, location_index)
 			local is_env = location_data.env_mod
 			
-			if addon_index == this_addon_index then
-				tile_data[location_data.tile] = location_index
-			elseif is_sw_bpms ~= is_env then -- xor
+			if (addon_index ~= this_addon_index) and (is_sw_bpms ~= is_env) then -- xor
 				local exclude_this_location = location_data.component_count == 0
 
 				for component_index = 0, location_data.component_count - 1 do
@@ -178,7 +175,8 @@ function onCreate(is_world_create)
 					end
 
 					if component_data.display_name ~= "" then
-						table.insert(local_labels, LocalLabel(server.getMapID(), label_icon, component_data.display_name, label_position, location_data.tile))
+						use_tile[location_data.tile] = true
+						table.insert(local_labels, LocalLabel(label_icon, component_data.display_name, label_position, location_data.tile))
 					end
 				end
 
@@ -196,25 +194,26 @@ function onCreate(is_world_create)
 		end
 	end
 
+	local this_addon_data = server.getAddonData(this_addon_index)	
+
+	for location_index = 0, this_addon_data.location_count - 1 do
+		local location_data = server.getLocationData(this_addon_index, location_index)
+		local tile_filename = location_data.tile
+		if (use_tile[tile_filename] ~= nil) and (g_savedata.tile_zero_point[tile_filename] == nil) then
+			local map_position_matrix = server.spawnAddonLocation(zero_matrix, this_addon_index, location_index)
+			local gx, gy, gz = matrix.position(map_position_matrix)
+			g_savedata.tile_zero_point[tile_filename] = MapPosition(gx, gz)
+		end
+	end
+
 	for local_fields_index, local_field in pairs(local_fields) do
 		local labels = {}
 		for local_labels_index, local_label in pairs(local_field.labels) do
-			local tile_filename = local_label.tile_filename
-			local map_position = g_savedata.tile_zero_point[tile_filename]
-			if map_position == nil then
-				local tile_location = tile_data[tile_filename]
-				if tile_location ~= nil then
-					local map_position_matrix = server.spawnAddonLocation(zero_matrix, this_addon_index, tile_location)
-					local gx, gy, gz = matrix.position(map_position_matrix)
-					g_savedata.tile_zero_point[tile_filename] = MapPosition(gx, gz)
-				end
-			end
+			local map_position = g_savedata.tile_zero_point[local_label.tile_filename]
 			if map_position ~= nil then
 				local mx, mz = local_label.position.x, local_label.position.z
 				local gx, gz = map_position.x, map_position.z
-				table.insert(labels, Label(local_label.ui_id, local_label.icon, local_label.text, MapPosition(mx+gx, mz+gz)))
-			else
-				server.removeMapID(-1, local_label.ui_id)
+				table.insert(labels, Label(server.getMapID(), local_label.icon, local_label.text, MapPosition(mx+gx, mz+gz)))
 			end
 		end
 		local normal_hide = config_hide[local_field.addon_index] ~= nil
