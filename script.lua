@@ -49,7 +49,7 @@ function LocalField(addon_index, location_indexes, labels, name)
 	return {
 		addon_index = addon_index,
 		location_indexes = location_indexes, -- List<location_index>
-		labels = labels, -- List<LocalLabel> ***differ from non-local
+		labels = labels, -- List<LocalLabel>
 		name = name,
 	}
 end
@@ -322,12 +322,7 @@ end
 function cmd_l(full_cmd, peer_id)
 	local msg = "[num] O(spawned)/X 'name'"
 	for field_ctrl_id, field in ipairs(fields) do
-		local status = nil
-		if g_savedata.fields_spawning[field.addon_index] then
-			status = "O"
-		else
-			status = "X"
-		end
+		local status = g_savedata.fields_spawning[field.addon_index] and "O" or "X"
 		msg = msg..string.format("\n[%d] %s '%s'", field_ctrl_id, status, field.name)
 	end
 	printToChat(full_cmd, peer_id, msg.."\nend")
