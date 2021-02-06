@@ -415,7 +415,6 @@ function onCustomCommand(full_message, peer_id, is_admin, is_auth, command)
 	elseif command == "?bm" then
 		local args = string.sub(full_message, 5, -1)
 		local full_cmd = string.gsub(full_message, "%s+", " ")
-		-- printToChat(peer_id, "# "..full_message)
 		for _k, cmd in pairs(cmds) do
 			local matches = string.match(args, "^%s-"..string.gsub(cmd[1], " ", "%%s-").."%s-$")
 			if matches ~= nil then
