@@ -4,7 +4,7 @@
 -- Created by moko256
 
 --[[
-Last checked version: v1.0.32
+Last checked version: v1.0.33
 Source code repository: https://github.com/moko256/swlua__SW_BPMS_building_manager/blob/main/script.lua
 Steam workshop: 
 
