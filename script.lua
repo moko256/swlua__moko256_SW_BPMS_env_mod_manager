@@ -86,7 +86,7 @@ end
 
 function showLabels(labels, peer_id) -- List<Label>
 	for labels_index, label in pairs(labels) do
-		server.addMapLabel(-1, label.ui_id, label.icon, label.text, label.position.x, label.position.z)
+		server.addMapLabel(peer_id, label.ui_id, label.icon, label.text, label.position.x, label.position.z)
 	end
 end
 
