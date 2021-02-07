@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+    <body>
+        <pre>
+This is an addon managing env mods for Stormworks.
+
+<h1>Features</h1>
+<ul>
+    <li>Spawn/despawn env mods</li>
+    <li>Spawn/despawn addons whose name starts "SW_BPMS_" and that have locations</li>
+    <li>Support using in multiplay</li>
+    <li>Display 'Display Name' properties on map</li>
+</ul>
+
+<h1>How to use</h1>
+<ol>
+    <li>Subscribe this addon.</li>
+    <li>Open the new world screen and select this addon and select other env mods what you want to use with.</li>
+    <li>Create the world. Only these steps and you can use those commands. Have fun!</li>
+</ol>
+
+<h1>Command usage</h1>
+<table>
+    <tr><th>Command</th><th>Permission</th><th>Description</th></tr>
+    <tr><td>?bm l</td><td>Authed</td><td>display all addons managing</td></tr>
+    <tr><td>?bm s a</td><td>Admin</td><td>spawn all</td></tr>
+    <tr><td>?bm s [num]</td><td>Admin</td><td>spawn at num</td></tr>
+    <tr><td>?bm d a</td><td>Admin</td><td>despawn all</td></tr>
+    <tr><td>?bm d [num]</td><td>Admin</td><td>despawn at num</td></tr>
+    <tr><td>?bm h</td><td>Authed</td><td>display this help</td></tr>
+</table>
+[num] is the number in [] in the output of '?bm l'.
+
+<h1>Note</h1>
+<ul>
+    <li>This addon cannot add any other new addons/env mods to world. You have to select them when you are creating world.</li>
+    <li>This addon is like prerequisite mod. This addon cannot use alone.</li>
+</ul>
+
+<h1>For env mods creators: labels and icons</h1>
+<ul>
+    <li>Vehicles/objects' "Display Name" is dealt by this and will be used as map labels' text.</li>
+    <li>Vehicles/objects' "SW_BPMS_map_icon=[LABEL_TYPE]" tag is dealt by this and will be used as map labels. (ex: SW_BPMS_map_icon=13 will be fuel icon)</li>
+</ul>
+
+<h1>Source code and license</h1>
+SPDX-License-Identifier: MIT
+Git repository: https://github.com/moko256/swlua__moko256_SW_BPMS_env_mod_manager
+        </pre>
+    </body>
+</html>

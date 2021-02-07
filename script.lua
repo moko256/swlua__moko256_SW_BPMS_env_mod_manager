@@ -6,7 +6,7 @@
 --[[
 Last checked version: v1.0.33
 Source code repository: https://github.com/moko256/swlua__SW_BPMS_building_manager/blob/main/script.lua
-Steam workshop: 
+Steam workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=2387617104
 
 Definitions:
 - tile zero point: a global matrix to be (0,0,0) in local matrix in each tile.
