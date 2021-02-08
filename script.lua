@@ -84,9 +84,18 @@ function MapPosition(x, z)
 	return { x = x, z = z }
 end
 
+
 function showLabels(labels, peer_id) -- List<Label>
 	for labels_index, label in pairs(labels) do
 		server.addMapLabel(peer_id, label.ui_id, label.icon, label.text, label.position.x, label.position.z)
+	end
+end
+
+function showAllLabelSpawned(peer_id)
+	for fields_index, field in pairs(fields) do
+		if g_savedata.fields_spawning[field.addon_index] then
+			showLabels(field.labels, peer_id)
+		end
 	end
 end
 
@@ -103,20 +112,31 @@ function spawnField(field) -- Field
 	showLabels(field.labels, -1)
 end
 
-function showAllLabelSpawned(peer_id)
-	for fields_index, field in pairs(fields) do
-		if g_savedata.fields_spawning[field.addon_index] then
-			showLabels(field.labels, peer_id)
-		end
-	end
-end
-
 function despawnBuilding(building) -- Building
 	if building.type == "vehicle" then
 		server.despawnVehicle(building.id, true)
 	else
 		server.despawnObject(building.id, true)
 	end
+end
+
+function showField(field)
+	if not g_savedata.fields_spawning[field.addon_index] then
+		g_savedata.fields_spawning[field.addon_index] = true
+		spawnField(field)
+	end
+end
+
+function hideField(field)
+	hideLabels(field.labels)
+	local addon_index = field.addon_index
+	if g_savedata.spawned_buildings[addon_index] ~= nil then
+		for building_index, building in pairs(g_savedata.spawned_buildings[addon_index]) do
+			despawnBuilding(building)
+			g_savedata.spawned_buildings[addon_index][building_index] = nil
+		end
+	end
+	g_savedata.fields_spawning[addon_index] = false
 end
 
 
@@ -239,15 +259,14 @@ function onCreate(is_world_create)
 		end
 
 		for field_ctrl_id, field in pairs(fields) do
-			if (not field.normal_hide) and g_savedata.fields_spawning[field.addon_index] == false then
-				spawnField(field)
-				g_savedata.fields_spawning[field.addon_index] = true
+			if (not field.normal_hide) then
+				showField(field)
 			end
 		end
+	else
+		showAllLabelSpawned(-1)
 	end
 	
-	showAllLabelSpawned(-1)
-
 	created = true
 end
 
@@ -285,27 +304,6 @@ end
 function printToNotify(title, msg)
 	server.notify(-1, title, msg, 4)
 end
-
-
-function showField(field)
-	if not g_savedata.fields_spawning[field.addon_index] then
-		g_savedata.fields_spawning[field.addon_index] = true
-		spawnField(field)
-	end
-end
-
-function hideField(field)
-	hideLabels(field.labels)
-	local addon_index = field.addon_index
-	if g_savedata.spawned_buildings[addon_index] ~= nil then
-		for building_index, building in pairs(g_savedata.spawned_buildings[addon_index]) do
-			despawnBuilding(building)
-			g_savedata.spawned_buildings[addon_index][building_index] = nil
-		end
-	end
-	g_savedata.fields_spawning[addon_index] = false
-end
-
 
 help_text = "--- moko256 SW-BPMS env mod manager ---\n"
 	.."?bm l              : display all addons managing\n"
@@ -407,11 +405,7 @@ cmds = {
 }
 
 function onCustomCommand(full_message, peer_id, is_admin, is_auth, command)
-	if command == "?reload_scripts" then
-		onDestroy()
-	elseif command == "?help" then
-		printToChat("?bm", peer_id, "?bm h")
-	elseif command == "?bm" then
+	if command == "?bm" then
 		local args = string.sub(full_message, 5, -1)
 		local full_cmd = string.gsub(full_message, "%s+", " ")
 		for _k, cmd in pairs(cmds) do
@@ -427,5 +421,7 @@ function onCustomCommand(full_message, peer_id, is_admin, is_auth, command)
 			end
 		end
 		printToChat(full_cmd, peer_id, string.format("No such command: '%s'. Try '?bm h'", full_message))
+	elseif command == "?help" then
+		printToChat("?bm", peer_id, "?bm h")
 	end
 end
